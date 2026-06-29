@@ -2,6 +2,8 @@
 
 **Turn ideas into works.**
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 Creator OS is an AI-powered content management system. Just paste your ideas, and AI will automatically organize, categorize, deduplicate, score, and generate a content dashboard.
 
 ---
@@ -34,7 +36,7 @@ Creator OS is an **AI content assistant** that helps you:
 ## Who is it For?
 
 - **Content creators** — Want to systematize ideas and topics
-- **Multi-platform creators** — Managing Xiaohongshu, YouTube, Bilibili, etc.
+- **Multi-platform creators** — Managing X/Twitter, YouTube, Xiaohongshu, Bilibili, etc.
 - **Personal IP builders** — Want data-driven content decisions
 - **AI tool enthusiasts** — Want to boost creative efficiency with AI
 
