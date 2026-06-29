@@ -21,13 +21,9 @@ Creator OS is an AI-powered content management system. Just paste your ideas, an
 
 ## Screenshots
 
-| Dashboard | Idea Inbox | AI Director |
-|:--:|:--:|:--:|
-| ![Dashboard](screenshots/dashboard-overview.png) | ![Inbox](screenshots/idea-inbox.png) | ![Director](screenshots/ai-director.png) |
+![Creator OS Dashboard](screenshots/en.png)
 
-| Ecosystem | Topic Library | Value Map |
-|:--:|:--:|:--:|
-| ![Ecosystem](screenshots/ecosystem-analysis.png) | ![Library](screenshots/topic-library.png) | ![Value Map](screenshots/value-map.png) |
+*Full dashboard showing all sections: Idea Inbox, AI Director, Top Picks, Ecosystem Analysis, Topic Library, Content Series, Creator Progress, and Value Map.*
 
 ---
 
