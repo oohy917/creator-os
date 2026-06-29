@@ -42,14 +42,6 @@ Creator OS is an **AI content assistant** that helps you:
 
 ---
 
-## Screenshots
-
-![Creator OS Dashboard](screenshots/en.png)
-
-*Full dashboard: Idea Inbox, AI Director, Top Picks, Ecosystem Analysis, Topic Library, Content Series, Creator Progress, and Value Map.*
-
----
-
 ## Installation
 
 ### Option 1: Claude Code (Recommended)
@@ -218,6 +210,14 @@ Creator OS generates a visual content dashboard with:
 | 👤 Profile | Your creator information |
 | 🪦 Not Recommended | Low-scoring or unsuitable topics |
 | 🎯 Value Map | Visual topic distribution |
+
+---
+
+## Screenshots
+
+![Creator OS Dashboard](screenshots/en.png)
+
+*Full dashboard: Idea Inbox, AI Director, Top Picks, Ecosystem Analysis, Topic Library, Content Series, Creator Progress, and Value Map.*
 
 ---
 
