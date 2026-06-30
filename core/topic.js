@@ -575,7 +575,7 @@ function cmdBuild() {
       const createdLabel = dashboardLang === 'en' ? 'Created' : '创建';
       const updatedLabel = dashboardLang === 'en' ? 'Updated' : '更新';
       const timeInfo = `<div class="tc-time">${createdLabel} ${createdDate}${updatedDate !== createdDate ? ' · ' + updatedLabel + ' ' + updatedDate : ''}</div>`;
-      cards += `<div class="topic-card" data-id="${t.id}" onclick="document.getElementById('modal-${t.id}').classList.add('active');document.body.style.overflow='hidden'">
+      cards += `<div class="topic-card" data-id="${t.id}" data-topic-id="${t.id}" data-title="${esc(t.title || t.raw)}" onclick="document.getElementById('modal-${t.id}').classList.add('active');document.body.style.overflow='hidden'">
         <div class="tc-title">${esc(t.title || t.raw)}</div>
         <div class="tc-raw">「${esc(t.raw)}」</div>
         ${merged}
@@ -898,7 +898,7 @@ body{font-family:'Nunito',-apple-system,sans-serif;background:var(--bg);color:va
 .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;align-items:center;justify-content:center}
 .modal.active{display:flex}
 .modal-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
-.modal-content{position:relative;background:var(--white);border-radius:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;padding:32px;box-shadow:0 24px 48px rgba(0,0,0,0.2)}
+.modal-content{position:relative;z-index:1;background:var(--white);border-radius:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;padding:32px;box-shadow:0 24px 48px rgba(0,0,0,0.2)}
 .modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:none;background:var(--purple);font-size:1.2em;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--white)}
 .modal-close:hover{background:var(--purple-dark)}
 .modal-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
@@ -915,6 +915,17 @@ body{font-family:'Nunito',-apple-system,sans-serif;background:var(--bg);color:va
 .modal-footer{display:flex;gap:14px;padding-top:16px;border-top:1px solid #f0f0f0}
 .btn-publish{padding:12px 24px;border-radius:14px;border:none;background:var(--purple);color:var(--white);font-weight:700;font-size:0.9em;cursor:pointer;font-family:inherit;transition:all 0.3s;box-shadow:0 4px 12px rgba(139,61,255,0.3)}
 .btn-publish:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(139,61,255,0.4)}
+.pub-table{width:100%;border-collapse:collapse;font-size:0.85em}
+.pub-table th{text-align:left;padding:10px 12px;background:var(--bg2);color:var(--text2);font-weight:600;border-bottom:2px solid var(--border)}
+.pub-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.pub-table tr:hover{background:var(--bg2)}
+.pub-table a{color:var(--purple);text-decoration:none}
+.pub-table a:hover{text-decoration:underline}
+.btn-unpublish{padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--white);color:var(--text2);font-size:0.8em;cursor:pointer;font-family:inherit}
+.btn-unpublish:hover{border-color:var(--coral);color:var(--coral)}
+.card.published{opacity:0.5}
+.card.published .card-title{text-decoration:line-through}
+.published-list{background:var(--white);border-radius:16px;overflow:hidden}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp 0.5s ease both}
 </style>
@@ -944,7 +955,7 @@ const UI={
   secAssets:{zh:'创作资产',en:'Creator Assets'},
   secProfile:{zh:'创作者画像',en:'Creator Profile'},
   secGraveyard:{zh:'暂不推荐',en:'Not Recommended'},
-  secValueMap:{zh:'选题价值地图',en:'Value Map'},
+  secPublished:{zh:'已发布记录',en:'Published History'},
   labelTotal:{zh:'总选题',en:'Total'},
   labelReady:{zh:'准备完成',en:'Ready'},
   labelPublished:{zh:'已发布',en:'Published'},
@@ -1201,17 +1212,11 @@ window.switchLang = function(lang){
   <div class="sec-title">🪦 <span data-i18n="secGraveyard">暂不推荐</span></div>
   <div class="eco"><div class="graveyard">${graveyardHtml}</div></div>
 
-  <!-- 9. 价值地图 -->
-  <div class="sec-title">🎯 <span data-i18n="secValueMap">选题价值地图</span></div>
-  <div class="map-wrap">
-    <div class="map">
-      <div class="map-quadrant map-q1">🔥<span data-i18n="mapHighHigh">高流量·高人设</span></div>
-      <div class="map-quadrant map-q2">👤<span data-i18n="mapLowHigh">低流量·高人设</span></div>
-      <div class="map-quadrant map-q3"><span data-i18n="mapMemo">备忘录</span></div>
-      <div class="map-quadrant map-q4">🔥<span data-i18n="mapHighLow">高流量·低人设</span></div>
-      ${mapDots}
-      <div class="map-axis-x"><span data-i18n="mapAxisViral">流量价值 ↑</span></div>
-      <div class="map-axis-y"><span data-i18n="mapAxisBrand">人设价值 ↑</span></div>
+  <!-- 9. 已发布记录 -->
+  <div class="sec-title">📤 <span data-i18n="secPublished">已发布记录</span></div>
+  <div class="eco">
+    <div id="publishedList" class="published-list">
+      <div style="opacity:0.5;padding:16px">暂无已发布选题</div>
     </div>
   </div>
 
@@ -1242,7 +1247,7 @@ const UI={
   secAssets:{zh:'创作资产',en:'Creator Assets'},
   secProfile:{zh:'创作者画像',en:'Creator Profile'},
   secGraveyard:{zh:'暂不推荐',en:'Not Recommended'},
-  secValueMap:{zh:'选题价值地图',en:'Value Map'},
+  secPublished:{zh:'已发布记录',en:'Published History'},
   labelTotal:{zh:'总选题',en:'Total'},
   labelReady:{zh:'准备完成',en:'Ready'},
   labelPublished:{zh:'已发布',en:'Published'},
@@ -1387,23 +1392,61 @@ document.addEventListener('keydown',function(e){
   }
 });
 
-// Mark published function - improved UX
+// Mark published function — works directly in browser
 window.markPublished=function(id){
-  var url=prompt('Enter publish URL (optional):','');
-  var cmd='node topic.js publish '+id+(url?' --url "'+url+'"':'');
-  if(confirm('Copy this command and run it in terminal?\n\n'+cmd)){
-    // Try to copy to clipboard
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(cmd).then(function(){
-        alert('Command copied to clipboard!\n\nPaste and run in your terminal, then refresh this page.');
-      }).catch(function(){
-        alert('Run this command in your terminal:\n\n'+cmd+'\n\nThen refresh this page.');
-      });
-    }else{
-      alert('Run this command in your terminal:\n\n'+cmd+'\n\nThen refresh this page.');
-    }
-  }
+  var url=prompt('输入发布链接（可选）：','');
+  var today=new Date().toISOString().split('T')[0];
+  // Store in localStorage
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  pubs[id]={date:today,url:url||''};
+  localStorage.setItem('cos_published',JSON.stringify(pubs));
+  // Update UI: close modal, update card, refresh published section
+  document.querySelectorAll('.modal.active').forEach(function(m){m.className='modal';});
+  document.body.style.overflow='';
+  var card=document.querySelector('[data-topic-id="'+id+'"]');
+  if(card){card.classList.add('published');card.querySelector('.card-status').textContent='✅ 已发布';}
+  var badge=document.getElementById('statPublished');
+  if(badge){badge.textContent=Object.keys(pubs).length;}
+  renderPublishedSection();
 };
+
+// Render published topics section
+function renderPublishedSection(){
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  var container=document.getElementById('publishedList');
+  if(!container)return;
+  var ids=Object.keys(pubs);
+  if(ids.length===0){container.innerHTML='<div style="opacity:0.5;padding:16px">暂无已发布选题</div>';return;}
+  var html='<table class="pub-table"><thead><tr><th>选题</th><th>发布日期</th><th>链接</th><th>操作</th></tr></thead><tbody>';
+  ids.forEach(function(id){
+    var el=document.querySelector('[data-topic-id="'+id+'"]');
+    var title=el?el.getAttribute('data-title'):'#'+id;
+    var p=pubs[id];
+    html+='<tr><td>'+title+'</td><td>'+p.date+'</td><td>'+(p.url?'<a href="'+p.url+'" target="_blank">查看</a>':'-')+'</td><td><button class="btn-unpublish" onclick="unpublish('+id+')">撤回</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  container.innerHTML=html;
+}
+
+// Unpublish function
+window.unpublish=function(id){
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  delete pubs[id];
+  localStorage.setItem('cos_published',JSON.stringify(pubs));
+  location.reload();
+};
+
+// On page load: mark published topics and render published section
+(function(){
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  Object.keys(pubs).forEach(function(id){
+    var card=document.querySelector('[data-topic-id="'+id+'"]');
+    if(card){card.classList.add('published');card.querySelector('.tc-stage').textContent='✅ 已发布';}
+  });
+  var badge=document.getElementById('statPublished');
+  if(badge){badge.textContent=Object.keys(pubs).length;}
+  renderPublishedSection();
+})();
 </script>
 </body>
 </html>`;
