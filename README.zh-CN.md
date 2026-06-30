@@ -62,10 +62,7 @@ Creator OS 是一个 **AI 内容助手**，它能帮你：
 
 1. 下载项目并解压
 2. **以写入权限启动**（必须，否则无法保存数据和生成看板）：
-   - **Windows**：右键 `start-codex.ps1` → 使用 PowerShell 运行，或在终端执行：
-     ```powershell
-     .\start-codex.ps1
-     ```
+   - **Windows**：双击 `start-codex.bat`
    - **macOS/Linux**：
      ```bash
      chmod +x start-codex.sh && ./start-codex.sh

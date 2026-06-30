@@ -23,7 +23,11 @@ import { homedir } from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const DATA_DIR = join(homedir(), '.media-topic-skill');
+// 支持通过环境变量指定数据目录（用于 Codex 等沙盒环境）
+// 默认: ~/.media-topic-skill/
+const DATA_DIR = process.env.CREATOR_OS_DATA_DIR
+  ? join(process.env.CREATOR_OS_DATA_DIR)
+  : join(homedir(), '.media-topic-skill');
 const TOPICS_FILE = join(DATA_DIR, 'topics.json');
 const CONFIG_FILE = join(DATA_DIR, 'config.json');
 const INBOX_FILE = join(DATA_DIR, 'inbox-log.md');

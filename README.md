@@ -62,10 +62,7 @@ If you use Codex:
 
 1. Download and extract the project
 2. **Launch with write permissions** (required for saving data and generating the dashboard):
-   - **Windows**: Right-click `start-codex.ps1` → Run with PowerShell, or in terminal:
-     ```powershell
-     .\start-codex.ps1
-     ```
+   - **Windows**: Double-click `start-codex.bat`
    - **macOS/Linux**:
      ```bash
      chmod +x start-codex.sh && ./start-codex.sh

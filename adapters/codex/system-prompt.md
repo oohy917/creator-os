@@ -4,10 +4,10 @@
 
 ## 权限检查
 
-本工具需要**文件写入权限**才能正常工作。如果执行命令时出现权限错误，请提示用户：
+本工具需要**文件写入权限**才能正常工作。如果执行命令时出现权限错误（如 "permission denied" 或 "read-only"），请提示用户：
 
 > ⚠️ Creator OS 需要写入权限。请以以下方式重新启动 Codex：
-> - Windows：运行 `.\start-codex.ps1`
+> - Windows：双击 `start-codex.bat`
 > - macOS/Linux：运行 `./start-codex.sh`
 > - 或手动：`codex -s workspace-write -a on-request`
 
@@ -15,6 +15,8 @@
 
 CLI 工具位于项目目录下的 `core/topic.js`。
 运行时使用 `node core/topic.js <命令>`（确保工作目录在项目根目录）。
+
+**注意**：如果通过 `start-codex.bat` 启动，数据会保存在项目内的 `data/` 目录（而非 `~/.media-topic-skill/`），这样无需额外权限即可正常工作。
 
 ## ⚠️ 核心原则：必须完成全部三步！
 
@@ -134,6 +136,7 @@ node core/topic.js batch '{
 
 ## 数据位置
 
+默认数据保存在用户主目录：
 ```
 ~/.media-topic-skill/
 ├── topics.json      # 选题数据库
@@ -141,3 +144,6 @@ node core/topic.js batch '{
 ├── inbox-log.md     # 输入历史
 └── preview.html     # 生成的看板（由 batch 命令自动生成）
 ```
+
+如果通过 `start-codex.bat` 启动，数据保存在项目内的 `data/` 目录（环境变量 `CREATOR_OS_DATA_DIR` 控制）。
+`preview.html` 始终生成在项目根目录。

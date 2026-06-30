@@ -57,6 +57,7 @@ preview.html
 topics.json
 config.json
 inbox-log.md
+data/
 
 # Temp files
 temp/
@@ -70,5 +71,5 @@ coverage/
 .nyc_output/
 
 # Optional
-screenshots/*.png
+# screenshots/*.png  # 已取消忽略，允许提交截图
 !screenshots/README.md
