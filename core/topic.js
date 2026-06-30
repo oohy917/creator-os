@@ -553,7 +553,7 @@ function cmdBuild() {
       const createdLabel = dashboardLang === 'en' ? 'Created' : '创建';
       const updatedLabel = dashboardLang === 'en' ? 'Updated' : '更新';
       const timeInfo = `<div class="tc-time">${createdLabel} ${createdDate}${updatedDate !== createdDate ? ' · ' + updatedLabel + ' ' + updatedDate : ''}</div>`;
-      cards += `<div class="topic-card" data-id="${t.id}" onclick="document.getElementById('modal-${t.id}').classList.add('active');document.body.style.overflow='hidden'">
+      cards += `<div class="topic-card" data-id="${t.id}" data-topic-id="${t.id}" onclick="document.getElementById('modal-${t.id}').classList.add('active');document.body.style.overflow='hidden'">
         <div class="tc-title">${esc(t.title || t.raw)}</div>
         <div class="tc-raw">「${esc(t.raw)}」</div>
         ${merged}
@@ -653,7 +653,6 @@ function cmdBuild() {
     const updatedDate = t.updatedAt ? formatDate(t.updatedAt) : '-';
 
     modals += `<div class="modal" id="modal-${t.id}">
-      <div class="modal-overlay" onclick="closeDetail(${t.id})"></div>
       <div class="modal-content">
         <button class="modal-close" onclick="document.getElementById('modal-${t.id}').classList.remove('active');document.body.style.overflow=''">×</button>
         <div class="modal-header"><div class="modal-num">#${t.id}</div><div class="modal-title">${esc(t.title || t.raw)}</div><span class="modal-badge ${rd.cls}">${rd.icon} <span data-i18n="${rd.key}">${rd.text}</span></span></div>
@@ -675,7 +674,7 @@ function cmdBuild() {
           <div class="modal-section"><div class="modal-label" data-i18n="modalUpdated">最后更新</div><div>${updatedDate}</div></div>
           ${t.publishUrl ? `<div class="modal-section"><div class="modal-label" data-i18n="modalLink">链接</div><div><a href="${esc(t.publishUrl)}" target="_blank">${esc(t.publishUrl)}</a></div></div>` : ''}
         </div>
-        <div class="modal-footer">${t.status !== 'published' ? `<button class="btn-publish" onclick="markPublished(${t.id})">✅ <span data-i18n="modalPublishBtn">标记为已发布</span></button>` : ''}</div>
+        <div class="modal-footer"><button class="btn-publish" onclick="togglePublish('${t.id}')">✅ 标记为已发布</button></div>
       </div>
     </div>`;
   }
@@ -873,9 +872,8 @@ body{font-family:'Nunito',-apple-system,sans-serif;background:var(--bg);color:va
 .sr-item{font-size:0.85em;padding:4px 0}
 .sr-pos{color:var(--yellow)}
 .sr-neg{opacity:0.6}
-.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;align-items:center;justify-content:center}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
 .modal.active{display:flex}
-.modal-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
 .modal-content{position:relative;background:var(--white);border-radius:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;padding:32px;box-shadow:0 24px 48px rgba(0,0,0,0.2)}
 .modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:none;background:var(--purple);font-size:1.2em;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--white)}
 .modal-close:hover{background:var(--purple-dark)}
@@ -893,6 +891,8 @@ body{font-family:'Nunito',-apple-system,sans-serif;background:var(--bg);color:va
 .modal-footer{display:flex;gap:14px;padding-top:16px;border-top:1px solid #f0f0f0}
 .btn-publish{padding:12px 24px;border-radius:14px;border:none;background:var(--purple);color:var(--white);font-weight:700;font-size:0.9em;cursor:pointer;font-family:inherit;transition:all 0.3s;box-shadow:0 4px 12px rgba(139,61,255,0.3)}
 .btn-publish:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(139,61,255,0.4)}
+.btn-unpublish{background:var(--text3) !important;box-shadow:none !important}
+.btn-unpublish:hover{background:var(--coral) !important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp 0.5s ease both}
 </style>
@@ -1076,6 +1076,73 @@ window.switchLang = function(lang){
   // Save to localStorage
   try{localStorage.setItem('cos-lang',lang)}catch(e){}
 };
+
+// 统一更新已发布统计
+function updatePublishedCount(count){
+  var progressEl=document.getElementById('pubCountNum');
+  var topEl=document.getElementById('topPublishedNum');
+  if(progressEl)progressEl.textContent=count;
+  if(topEl)topEl.textContent=count;
+}
+
+// Toggle publish
+window.togglePublish=function(id){
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  var card=document.querySelector('[data-topic-id="'+id+'"]');
+  var title=card?card.querySelector('.tc-title'):null;
+  var name=title?title.textContent:'#'+id;
+  if(pubs[id]){
+    // 撤回
+    delete pubs[id];
+    if(card)card.style.display='';
+    var item=document.getElementById('pub-item-'+id);
+    if(item)item.remove();
+  }else{
+    // 标记发布
+    pubs[id]={date:new Date().toISOString().split('T')[0]};
+    var modal=document.getElementById('modal-'+id);
+    if(modal)modal.className='modal';
+    document.body.style.overflow='';
+    if(card)card.style.display='none';
+    addPubItem(id,name,pubs[id].date);
+  }
+  localStorage.setItem('cos_published',JSON.stringify(pubs));
+  updatePublishedCount(Object.keys(pubs).length);
+};
+
+function addPubItem(id,name,date){
+  var sec=document.getElementById('published-section');
+  var list=document.getElementById('published-list');
+  if(sec)sec.style.display='block';
+  if(list){
+    var div=document.createElement('div');
+    div.id='pub-item-'+id;
+    div.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)';
+    var info=document.createElement('span');
+    info.innerHTML='<span style="font-weight:700">'+name+'</span><span style="opacity:0.5;margin-left:12px;font-size:0.85em">'+date+'</span>';
+    var btn=document.createElement('button');
+    btn.textContent='↩ 撤回';
+    btn.style.cssText='padding:6px 16px;border-radius:10px;border:1px solid var(--border);background:var(--white);cursor:pointer;font-family:inherit;font-size:0.85em;font-weight:600';
+    btn.onclick=function(){togglePublish(id);};
+    div.appendChild(info);
+    div.appendChild(btn);
+    list.appendChild(div);
+  }
+}
+
+// 等 DOM 加载完成后初始化
+document.addEventListener('DOMContentLoaded',function(){
+  var pubs=JSON.parse(localStorage.getItem('cos_published')||'{}');
+  var ids=Object.keys(pubs);
+  ids.forEach(function(id){
+    var card=document.querySelector('[data-topic-id="'+id+'"]');
+    if(card)card.style.display='none';
+    var title=card?card.querySelector('.tc-title'):null;
+    var name=title?title.textContent:'#'+id;
+    addPubItem(id,name,pubs[id].date);
+  });
+  updatePublishedCount(ids.length);
+});
 </script>
 <div class="wrap">
   <div class="topbar anim">
@@ -1109,7 +1176,7 @@ window.switchLang = function(lang){
     </div>
     <div class="stat-card">
       <div class="stat-icon-wrapper stat-icon-purple"><div class="stat-icon">🎯</div></div>
-      <div class="stat-num">${published}</div>
+      <div class="stat-num" id="topPublishedNum">${published}</div>
       <div class="stat-label" data-i18n="statPublished">已发布</div>
     </div>
     <div class="stat-card">
@@ -1145,11 +1212,17 @@ window.switchLang = function(lang){
     <div class="progress-grid">
       <div class="pg-item"><div class="pg-num">${data.topics.length}</div><div class="pg-label" data-i18n="labelTotal">总选题</div></div>
       <div class="pg-item"><div class="pg-num pg-green">${ready}</div><div class="pg-label" data-i18n="labelReady">准备完成</div></div>
-      <div class="pg-item"><div class="pg-num pg-purple">${published}</div><div class="pg-label" data-i18n="labelPublished">已发布</div></div>
+      <div class="pg-item"><div class="pg-num pg-purple" id="pubCountNum">${published}</div><div class="pg-label" data-i18n="labelPublished">已发布</div></div>
       <div class="pg-item"><div class="pg-num pg-coral">${needCases}</div><div class="pg-label" data-i18n="labelNeedCases">待补充案例</div></div>
       <div class="pg-item"><div class="pg-num pg-gray">${draftCount}</div><div class="pg-label" data-i18n="labelDraft">想法阶段</div></div>
       <div class="pg-item"><div class="pg-num pg-gray">${abandoned}</div><div class="pg-label" data-i18n="labelAbandoned">已放弃</div></div>
     </div>
+  </div>
+
+  <!-- 6b. 已发布 -->
+  <div id="published-section" style="display:none">
+    <div class="sec-title">✅ <span>已发布</span></div>
+    <div class="eco"><div id="published-list" style="padding:16px"></div></div>
   </div>
 
   <!-- 7b. 创作资产 -->
@@ -1198,191 +1271,6 @@ window.switchLang = function(lang){
 
 ${modals}
 
-<script>
-var currentLang='zh';
-
-const UI={
-  heroBadge:{zh:'创作者工作台',en:'Creator Studio'},
-  heroTitle:{zh:'Creator OS',en:'Creator OS'},
-  heroSub:{zh:'今天，你有 {n} 个值得创作的想法',en:'You have {n} ideas worth creating today'},
-  heroCta:{zh:'今日推荐：',en:"Today's Pick: "},
-  statTopics:{zh:'选题',en:'Topics'},
-  statReady:{zh:'可发布',en:'Ready'},
-  statPublished:{zh:'已发布',en:'Published'},
-  statSeries:{zh:'系列',en:'Series'},
-  secInbox:{zh:'灵感收件箱',en:'Idea Inbox'},
-  secDirector:{zh:'AI 内容总监',en:'AI Director'},
-  secTopPicks:{zh:'近期最值得发',en:'Top Picks'},
-  secEcosystem:{zh:'内容生态分析',en:'Content Ecosystem'},
-  secTopics:{zh:'选题库',en:'Topic Library'},
-  secSeries:{zh:'内容系列',en:'Content Series'},
-  secProgress:{zh:'创作进度',en:'Creator Progress'},
-  secAssets:{zh:'创作资产',en:'Creator Assets'},
-  secProfile:{zh:'创作者画像',en:'Creator Profile'},
-  secGraveyard:{zh:'暂不推荐',en:'Not Recommended'},
-  secValueMap:{zh:'选题价值地图',en:'Value Map'},
-  labelTotal:{zh:'总选题',en:'Total'},
-  labelReady:{zh:'准备完成',en:'Ready'},
-  labelPublished:{zh:'已发布',en:'Published'},
-  labelNeedCases:{zh:'待补充案例',en:'Needs Cases'},
-  labelDraft:{zh:'想法阶段',en:'Draft'},
-  labelAbandoned:{zh:'已放弃',en:'Abandoned'},
-  assetInputs:{zh:'累计灵感',en:'Total Ideas'},
-  assetTopics:{zh:'形成选题',en:'Topics'},
-  assetMerged:{zh:'合并重复',en:'Merged'},
-  assetSeries:{zh:'内容系列',en:'Series'},
-  profilePersona:{zh:'人设',en:'Persona'},
-  profileNiche:{zh:'赛道',en:'Niche'},
-  profileGoal:{zh:'目标',en:'Goal'},
-  profilePlatforms:{zh:'主平台',en:'Platforms'},
-  profileStage:{zh:'当前阶段',en:'Stage'},
-  followerSuffix:{zh:'粉',en:' followers'},
-  noTopics:{zh:'暂无选题',en:'No topics yet'},
-  langHint:{zh:'界面语言仅影响看板文案，内容默认保留原文。',en:'Dashboard language only changes UI labels. Content stays in its original language by default.'},
-  mapHighHigh:{zh:'高流量·高人设',en:'High Viral · High Brand'},
-  mapLowHigh:{zh:'低流量·高人设',en:'Low Viral · High Brand'},
-  mapMemo:{zh:'备忘录',en:'Memo'},
-  mapHighLow:{zh:'高流量·低人设',en:'High Viral · Low Brand'},
-  mapAxisViral:{zh:'流量价值 ↑',en:'Viral Value ↑'},
-  mapAxisBrand:{zh:'人设价值 ↑',en:'Brand Value ↑'},
-  emptyInbox:{zh:'还没有灵感记录',en:'No ideas yet'},
-  emptyGraveyardTitle:{zh:'当前所有选题均值得保留',en:'All topics are worth keeping'},
-  emptyGraveyardDesc:{zh:'当出现以下情况时会进入此区域：',en:'Topics appear here when:'},
-  graveyardHomogeneous:{zh:'同质化严重',en:'Too similar to existing'},
-  graveyardLowViral:{zh:'爆款潜力低',en:'Low viral potential'},
-  graveyardLowScore:{zh:'综合评分不足',en:'Low composite score'},
-  scoreViral:{zh:'爆款',en:'Viral'},
-  scoreBrand:{zh:'人设',en:'Brand'},
-  scoreComp:{zh:'竞争',en:'Competition'},
-  levelLow:{zh:'低',en:'Low'},
-  levelMid:{zh:'中',en:'Mid'},
-  levelHigh:{zh:'高',en:'High'},
-  modalRaw:{zh:'原始灵感',en:'Original Idea'},
-  modalTheme:{zh:'主题',en:'Theme'},
-  modalPlatform:{zh:'平台',en:'Platform'},
-  modalFormat:{zh:'形式',en:'Format'},
-  modalStage:{zh:'阶段',en:'Stage'},
-  modalPriority:{zh:'优先级',en:'Priority'},
-  modalTags:{zh:'价值标签',en:'Tags'},
-  modalNote:{zh:'备注',en:'Note'},
-  modalRecommend:{zh:'推荐发布时间',en:'Recommend'},
-  modalScoreDetail:{zh:'评分详情',en:'Score Details'},
-  modalCreated:{zh:'创建时间',en:'Created'},
-  modalUpdated:{zh:'最后更新',en:'Updated'},
-  modalLink:{zh:'链接',en:'Link'},
-  modalMergedFrom:{zh:'合并来源',en:'Merged From'},
-  modalScoreViral:{zh:'爆款指数',en:'Viral Score'},
-  modalScoreBrand:{zh:'人设价值',en:'Brand Score'},
-  modalScoreBiz:{zh:'商业价值',en:'Business Value'},
-  modalScoreComp:{zh:'竞争度',en:'Competition'},
-  modalPublishBtn:{zh:'标记为已发布',en:'Mark as Published'},
-  readinessPublished:{zh:'已发布',en:'Published'},
-  readinessReady:{zh:'准备完成',en:'Ready'},
-  readinessHighPotential:{zh:'高潜力',en:'High Potential'},
-  readinessNeedsCases:{zh:'需要补充',en:'Needs Cases'},
-  readinessDraft:{zh:'想法阶段',en:'Idea Stage'},
-  inboxSummary:{zh:'本次新增 {n} 条灵感',en:'{n} new ideas this time'},
-  updateBestLabel:{zh:'本次最佳发现',en:'Best Discovery'},
-  updateMerged:{zh:'合并了 {n} 条相似想法',en:'Merged {n} similar ideas'},
-  directorNext:{zh:'建议下一篇发：',en:'Suggest next:'},
-  directorGap:{zh:'内容不足，建议补充。',en:'Content gap — consider adding more.'},
-  directorOk:{zh:'内容分布健康，继续保持当前节奏。',en:'Content distribution is healthy. Keep going!'},
-  ecoUnbalanced:{zh:'内容生态不均衡',en:'Unbalanced ecosystem'},
-  unitArticles:{zh:'篇',en:''},
-  seriesSuggestPrefix:{zh:'建议补充：',en:'Suggest:'},
-  seriesEmpty:{zh:'继续输入灵感，系统会自动识别可形成系列的内容',en:'Keep adding ideas — the system will auto-detect series'},
-  seriesSuggest:{zh:'还差 {n} 个选题即可形成系列',en:'{n} more topics to form a series'},
-  directorOverprod:{zh:'你最近在过度生产「{theme}」内容。过去 {n} 个选题中，它占了 {pct}%。',en:'Overproducing "{theme}" content — {pct}% of your last {n} topics.'},
-  directorIsHighest:{zh:'是当前最高的。',en:'is the highest right now.'},
-  directorSuggestTime:{zh:'建议{time}发布。',en:'Suggest publishing {time}.'},
-  graveyardHighComp:{zh:'竞争度过高',en:'High competition'},
-  graveyardNoCases:{zh:'缺少案例支撑',en:'Lacks case studies'},
-  graveyardOffBrand:{zh:'与账号定位不符',en:'Off-brand'},
-  ecoSuggest:{zh:'仅占 {pct}%，建议补充',en:'Only {pct}% — consider adding more'},
-  // Theme name translations (for Topic Library group headers)
-  themeNameMap:{
-    'AI工具测评':'AI Tools Review',
-    'AI工作流':'AI Workflow',
-    '运营成长':'Career Growth',
-    '海外运营':'Overseas Marketing',
-    '理工转运营':'Tech to Marketing',
-    '个人品牌':'Personal Brand',
-    '行业洞察':'Industry Insight',
-    'AI生活升级':'AI Life Upgrade',
-    '其他':'Other'
-  },
-  // Format translations
-  formatMap:{
-    '长文':'Long-form Article',
-    '图文':'Image + Text',
-    '短视频':'Short Video',
-    '长视频':'Long Video',
-    '直播':'Livestream',
-    '图文轮播':'Carousel',
-    'Thread':'Thread',
-    '视频':'Video'
-  },
-  // Value tags translations
-  tagMap:{
-    '爆款':'Viral',
-    '实用':'Practical',
-    '干货':'Actionable',
-    '故事':'Story',
-    '热点':'Trending',
-    '教程':'Tutorial',
-    '对比':'Comparison',
-    '测评':'Review',
-    '案例':'Case Study',
-    '方法论':'Methodology',
-    '工具':'Tools',
-    '资源':'Resources'
-  }
-};
-
-// Initialize language from localStorage
-switchLang(localStorage.getItem('cos-lang')||'zh');
-  });
-  try{localStorage.setItem('cos-lang',lang)}catch(e){}
-}
-setLang(currentLang);
-// Open modal - global function
-window.openDetail=function(id){
-  var m=document.getElementById('modal-'+id);
-  if(m){m.className='modal active';document.body.style.overflow='hidden';}
-};
-
-// Close modal - global function
-window.closeDetail=function(id){
-  var m=document.getElementById('modal-'+id);
-  if(m){m.className='modal';document.body.style.overflow='';}
-};
-
-// Close modal on Escape key
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    document.querySelectorAll('.modal.active').forEach(function(m){m.className='modal';});
-    document.body.style.overflow='';
-  }
-});
-
-// Mark published function - improved UX
-window.markPublished=function(id){
-  var url=prompt('Enter publish URL (optional):','');
-  var cmd='node topic.js publish '+id+(url?' --url "'+url+'"':'');
-  if(confirm('Copy this command and run it in terminal?\n\n'+cmd)){
-    // Try to copy to clipboard
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(cmd).then(function(){
-        alert('Command copied to clipboard!\n\nPaste and run in your terminal, then refresh this page.');
-      }).catch(function(){
-        alert('Run this command in your terminal:\n\n'+cmd+'\n\nThen refresh this page.');
-      });
-    }else{
-      alert('Run this command in your terminal:\n\n'+cmd+'\n\nThen refresh this page.');
-    }
-  }
-};
-</script>
 </body>
 </html>`;
 
