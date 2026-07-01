@@ -10,9 +10,9 @@ Creator OS is an AI-powered content management system. Just paste your ideas, an
 
 ## 🚀 Quick Start (New Users)
 
-### Get Started in 5 Minutes
+### Get Started in 30 Seconds
 
-1. **Download** → Click green `Code` button → `Download ZIP` → Extract
+1. **Clone** → Tell your AI: `Clone https://github.com/xiaxia94/creator-os`
 2. **Tell AI who you are** → Say "I'm an AI creator, main platforms are Xiaohongshu and YouTube"
 3. **Paste ideas** → Share your thoughts, AI processes automatically
 4. **View dashboard** → Open `preview.html` to see results
@@ -44,42 +44,44 @@ Creator OS is an **AI content assistant** that helps you:
 
 ## Installation
 
+All options only require **cloning the repo** — no extra downloads or setup needed.
+
 ### Option 1: Claude Code (Recommended)
 
-If you already have Claude Code installed:
+In Claude Code, type:
 
-1. **Download the project**
-   - Click the green `Code` button on GitHub → `Download ZIP`
-   - Extract to any location (like Desktop)
+```
+Clone https://github.com/xiaxia94/creator-os and help me with my ideas: ...
+```
 
-2. **Use in Claude Code**
-   - Open Claude Code
-   - Paste your ideas, AI will automatically process them
+Claude Code auto-loads `CLAUDE.md` and starts working immediately.
 
 ### Option 2: Codex
 
-If you use Codex:
+In Codex, type:
 
-1. Download and extract the project
-2. Open the project directory in Codex
-3. Type `/creator-os` or just say "use Creator OS"
+```
+Clone https://github.com/xiaxia94/creator-os
+```
 
-> 💡 The project includes a built-in Codex Skill (`.codex/skills/creator-os/`). Codex auto-discovers and loads it. Data is saved in the project's `data/` directory.
+Then say `/creator-os` or "use Creator OS". Codex auto-discovers the built-in Skill.
 
 ### Option 3: Cursor
 
-If you use Cursor:
+In Cursor, type:
 
-1. Download and extract the project
-2. Open Cursor, load the project folder
-3. Paste your ideas in Cursor, AI will process them
+```
+Clone https://github.com/xiaxia94/creator-os
+```
+
+Cursor auto-loads `.cursorrules` and starts working immediately.
 
 ### Option 4: Other AI Assistants
 
 Any AI assistant that supports Skills/Agents:
 
-1. Download and extract the project
-2. Load the `skill.md` or adapter files from `adapters/` into your AI assistant
+1. Clone the repo
+2. Load `skill.md` or adapter files from `adapters/` into your AI assistant
 3. Start using
 
 ---
@@ -252,15 +254,16 @@ Creator OS auto-detects a writable location for your data:
 
 ```
 creator-os/
+├── CLAUDE.md                 # Claude Code auto-loads (root)
+├── .cursorrules              # Cursor auto-loads (root)
+├── .codex/skills/            # Codex native Skill (auto-discovered)
+│   └── creator-os/SKILL.md
 ├── core/
 │   ├── topic.js              # Core engine
 │   ├── prompts/              # AI prompt templates
 │   └── config/               # Configuration files
 │
-├── .codex/skills/            # Codex native Skill (auto-discovered)
-│   └── creator-os/SKILL.md
-│
-├── adapters/                 # Platform adapters
+├── adapters/                 # Platform adapters (fallback)
 │   ├── claude-code/SKILL.md
 │   ├── cursor/.cursorrules
 │   └── generic/AGENT.md
@@ -299,7 +302,7 @@ Currently only supports single-user use. Team collaboration may be added in the 
 
 ### Q: How do I update to a new version?
 
-Download the latest version and overwrite old files. Your data won't be lost.
+Run `git pull` in the project directory. Your data won't be lost.
 
 ---
 
